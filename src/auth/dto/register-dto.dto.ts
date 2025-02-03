@@ -21,6 +21,7 @@ export class RegisterDto {
   @IsString({ message: 'Display name must be a string' })
   @IsNotEmpty({ message: 'Display name is required' })
   displayName: string;
+
   @IsString({ message: 'Password must be a string' })
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(6, { message: 'Password must be at least 6 characters' })
