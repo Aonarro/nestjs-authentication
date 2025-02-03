@@ -1,0 +1,80 @@
+model Account {
+  id String @id @default(uuid())
+
+  type     String
+  provider String
+
+  refreshToken String?
+  accessToken  String?
+  expiresAt    DateTime?
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  @@map("accounts")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./__generated__"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+model Token {
+  id String @id @default(uuid())
+
+  email     String
+  token     String    @unique
+  type      TokenType
+  expiresIn DateTime
+
+  @@map("tokens")
+}
+
+enum TokenType {
+  VERIFICATION
+  TWO_FACTOR
+  PASSWORD_RESET
+}
+
+model User {
+  id String @id @default(uuid())
+
+  email    String @unique
+  password String
+
+  displayName String
+  pictureUrl  String?
+
+  role UserRole @default(REGULAR)
+
+  isVerified         Boolean @default(false)
+  isTwoFactorEnabled Boolean @default(false)
+
+  method AuthMethod
+
+  accounts Account[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  @@map("users")
+}
+
+enum UserRole {
+  REGULAR
+  ADMIN
+}
+
+enum AuthMethod {
+  CREDENTIALS
+  GOOGLE
+}
