@@ -21,9 +21,11 @@ async function bootstrap() {
     }),
   );
 
-  console.log(
-    typeof +config.getOrThrow<number>('SESSION_MAX_AGE') === 'number',
-  );
+  app.enableCors({
+    origin: true,
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
+  });
 
   app.use(
     session({
@@ -32,10 +34,13 @@ async function bootstrap() {
       resave: true,
       saveUninitialized: false,
       cookie: {
-        domain: config.getOrThrow<string>('SESSION_DOMAIN'),
-        secure: config.getOrThrow<boolean>('SESSION_SECURE'),
-        httpOnly: config.getOrThrow<boolean>('SESSION_HTTP_ONLY'),
-        maxAge: Number(config.getOrThrow<number>('SESSION_MAX_AGE')),
+        domain: String(config.getOrThrow<string>('SESSION_DOMAIN')),
+        // domain: 'localhost',
+        secure: config.getOrThrow<string>('SESSION_SECURE') === 'true',
+        // secure: false,
+        httpOnly: config.getOrThrow<string>('SESSION_HTTP_ONLY') === 'true',
+        // httpOnly: true,
+        maxAge: Number(config.getOrThrow<string>('SESSION_MAX_AGE')),
         sameSite: 'lax',
       },
       store: new RedisStore({
@@ -44,12 +49,6 @@ async function bootstrap() {
       }),
     }),
   );
-
-  app.enableCors({
-    origin: '*',
-    credentials: true,
-    exposedHeaders: ['set-cookie'],
-  });
 
   await app.listen(config.getOrThrow('APP_PORT'));
   Logger.log(

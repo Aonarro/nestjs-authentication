@@ -2,16 +2,25 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { RegisterDto } from './dto/register-dto.dto';
+import { RegisterDto } from './dto/register.dto';
 import { AuthMethod, User } from '../../prisma/schema/__generated__';
-import { Request } from 'express';
+import { LoginDto } from './dto/login.dto';
+import { Request, Response } from 'express';
+import { verify } from 'argon2';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
-  public async register(req: Request, registerDto: RegisterDto) {
+  constructor(
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  public async register(req: Request, registerDto: RegisterDto): Promise<User> {
     const isUserExist = await this.userService.findByEmail(registerDto.email);
 
     if (isUserExist) {
@@ -26,20 +35,45 @@ export class AuthService {
       AuthMethod.CREDENTIALS,
       false,
     );
-    this.saveSession(req, newUser);
+    await this.saveSession(req, newUser);
     return newUser;
   }
 
-  public async login() {}
+  public async login(
+    req: Request,
+    loginDto: LoginDto,
+  ): Promise<{ user: User }> {
+    const user = await this.userService.findByEmail(loginDto.email);
 
-  public async logOut() {}
+    if (!user || !user.password) {
+      throw new NotFoundException('User not found');
+    }
 
-  private async saveSession(req: Request, user: User) {
-    console.log('Session saved. User: ', user);
-    console.log('Session saved. User: ', user.id);
+    const isValidPassword = await verify(user.password, loginDto.password);
 
-    console.log(req.session.userId);
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
+    return await this.saveSession(req, user);
+  }
+
+  public async logOut(req: Request, res: Response): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log('Текущая сессия перед удалением:', req.session);
+
+      req.session.destroy((err) => {
+        if (err) {
+          return reject(new InternalServerErrorException('Failed to log out'));
+        } else {
+          res.clearCookie('session');
+          resolve();
+        }
+      });
+    });
+  }
+
+  private async saveSession(req: Request, user: User): Promise<{ user: User }> {
     return new Promise((resolve, reject) => {
       req.session.userId = user.id;
       req.session.save((err) => {
