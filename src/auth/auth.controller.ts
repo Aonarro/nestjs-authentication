@@ -63,7 +63,7 @@ export class AuthController {
     );
   }
 
-  @Get()
+  @Get('/oauth/connect/:provider')
   @UseGuards(AuthProviderGuard)
   @HttpCode(HttpStatus.OK)
   public async connect(@Param('provider') provider: string) {
