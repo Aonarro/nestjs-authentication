@@ -1,3 +1,4 @@
+import { EmailConfirmationService } from './../email-confirmation/email-confirmation.service';
 import {
   ConflictException,
   Injectable,
@@ -22,9 +23,13 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly providerService: ProviderService,
     private readonly prismaService: PrismaService,
+    private readonly emailConfirmationService: EmailConfirmationService,
   ) {}
 
-  public async register(req: Request, registerDto: RegisterDto): Promise<User> {
+  public async register(
+    req: Request,
+    registerDto: RegisterDto,
+  ): Promise<{ message: string }> {
     const isUserExist = await this.userService.findByEmail(registerDto.email);
 
     if (isUserExist) {
@@ -39,8 +44,13 @@ export class AuthService {
       AuthMethod.CREDENTIALS,
       false,
     );
-    await this.saveSession(req, newUser);
-    return newUser;
+
+    await this.emailConfirmationService.sendVerificationToken(newUser);
+    // await this.saveSession(req, newUser);
+
+    return {
+      message: 'You successfully registered, please confirm your email',
+    };
   }
 
   public async login(
@@ -57,6 +67,13 @@ export class AuthService {
 
     if (!isValidPassword) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.isVerified) {
+      await this.emailConfirmationService.sendVerificationToken(user);
+      throw new UnauthorizedException(
+        'Please verify your email before logging in',
+      );
     }
 
     return await this.saveSession(req, user);
@@ -127,7 +144,7 @@ export class AuthService {
     });
   }
 
-  private async saveSession(req: Request, user: User): Promise<{ user: User }> {
+  public async saveSession(req: Request, user: User): Promise<{ user: User }> {
     return new Promise((resolve, reject) => {
       req.session.userId = user.id;
       req.session.save((err) => {

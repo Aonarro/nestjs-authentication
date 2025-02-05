@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import IORedis from 'ioredis';
-import { RedisStore } from 'connect-redis';
+import RedisStore from 'connect-redis';
 import * as session from 'express-session';
 
 async function bootstrap() {

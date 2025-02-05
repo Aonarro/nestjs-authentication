@@ -33,7 +33,6 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.OK)
   public async register(@Req() req: Request, @Body() registerDto: RegisterDto) {
-    console.log(registerDto);
     return this.authService.register(req, registerDto);
   }
 
