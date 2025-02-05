@@ -6,6 +6,8 @@ model Token {
   type      TokenType
   expiresIn DateTime
 
+  createdAt DateTime @default(now())
+
   @@map("tokens")
 }
 

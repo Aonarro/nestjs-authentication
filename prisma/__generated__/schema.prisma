@@ -6,7 +6,7 @@ model Account {
 
   refreshToken String?
   accessToken  String?
-  expiresAt    DateTime?
+  expiresAt    Int?
 
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
@@ -19,7 +19,7 @@ model Account {
 
 generator client {
   provider        = "prisma-client-js"
-  output          = "./__generated__"
+  output          = "../__generated__"
   previewFeatures = ["prismaSchemaFolder"]
 }
 
@@ -35,6 +35,8 @@ model Token {
   token     String    @unique
   type      TokenType
   expiresIn DateTime
+
+  createdAt DateTime @default(now())
 
   @@map("tokens")
 }
