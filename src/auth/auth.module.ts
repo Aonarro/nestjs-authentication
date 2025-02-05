@@ -11,8 +11,6 @@ import { EmailConfirmationModule } from '../email-confirmation/email-confirmatio
 
 @Module({
   imports: [
-    UserModule,
-    ConfigModule,
     GoogleRecaptchaModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: getRecaptchaConfig,
@@ -24,6 +22,8 @@ import { EmailConfirmationModule } from '../email-confirmation/email-confirmatio
       inject: [ConfigService],
     }),
     forwardRef(() => EmailConfirmationModule),
+    UserModule,
+    ConfigModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

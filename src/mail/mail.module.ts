@@ -14,5 +14,6 @@ import { getMailerConfig } from '../utils/config/mailer.config';
     }),
   ],
   providers: [MailService],
+  exports: [MailService],
 })
 export class MailModule {}
