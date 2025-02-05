@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { RegisterDto } from './dto/register.dto';
-import { AuthMethod, User } from '../../prisma/schema/__generated__';
+import { AuthMethod, User } from '../../prisma/__generated__';
 import { LoginDto } from './dto/login.dto';
 import { Request, Response } from 'express';
 import { verify } from 'argon2';

@@ -2,7 +2,7 @@ import { Controller, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Authorized } from '../auth/decorators/authorized.decorator';
 import { Authorization } from '../auth/decorators/auth.decorator';
-import { UserRole } from '../../prisma/schema/__generated__';
+import { UserRole } from '../../prisma/__generated__';
 
 @Controller('users')
 export class UserController {
