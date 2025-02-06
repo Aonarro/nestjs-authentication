@@ -8,6 +8,7 @@ import { getRecaptchaConfig } from '../utils/config/recapthca.config';
 import { ProviderModule } from './provider/provider.module';
 import { getProvidersConfig } from '../utils/config/providers.config';
 import { EmailConfirmationModule } from '../email-confirmation/email-confirmation.module';
+import { TwoFactorAuthModule } from '../two-factor-auth/two-factor-auth.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { EmailConfirmationModule } from '../email-confirmation/email-confirmatio
     forwardRef(() => EmailConfirmationModule),
     UserModule,
     ConfigModule,
+    TwoFactorAuthModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

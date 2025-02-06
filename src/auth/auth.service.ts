@@ -1,3 +1,4 @@
+import { TwoFactorAuthService } from './../two-factor-auth/two-factor-auth.service';
 import { EmailConfirmationService } from './../email-confirmation/email-confirmation.service';
 import {
   ConflictException,
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly providerService: ProviderService,
     private readonly prismaService: PrismaService,
     private readonly emailConfirmationService: EmailConfirmationService,
+    private readonly twoFactorAuthService: TwoFactorAuthService,
   ) {}
 
   public async register(
@@ -45,8 +47,7 @@ export class AuthService {
       false,
     );
 
-    await this.emailConfirmationService.sendVerificationToken(newUser);
-    // await this.saveSession(req, newUser);
+    await this.emailConfirmationService.sendVerificationToken(newUser.email);
 
     return {
       message: 'You successfully registered, please confirm your email',
@@ -56,7 +57,7 @@ export class AuthService {
   public async login(
     req: Request,
     loginDto: LoginDto,
-  ): Promise<{ user: User }> {
+  ): Promise<{ user: User } | { message: string }> {
     const user = await this.userService.findByEmail(loginDto.email);
 
     if (!user || !user.password) {
@@ -70,9 +71,24 @@ export class AuthService {
     }
 
     if (!user.isVerified) {
-      await this.emailConfirmationService.sendVerificationToken(user);
+      await this.emailConfirmationService.sendVerificationToken(user.email);
       throw new UnauthorizedException(
         'Please verify your email before logging in',
+      );
+    }
+
+    if (user.isTwoFactorEnabled) {
+      if (!loginDto.code) {
+        await this.twoFactorAuthService.sendTwoFactorToken(user.email);
+
+        return {
+          message: 'Check your email for two factor code',
+        };
+      }
+
+      await this.twoFactorAuthService.validateTwoFactorToken(
+        user.email,
+        loginDto.code,
       );
     }
 

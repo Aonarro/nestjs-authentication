@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 import { getConfirmationTemplate } from './templates/confirmation.template';
 import { getRestorePasswordTemplate } from './templates/restore-password.template';
+import { getTwoFactorAuthTemplate } from './templates/two-factor-auth.template';
 
 @Injectable()
 export class MailService {
@@ -24,6 +25,13 @@ export class MailService {
     const html = getRestorePasswordTemplate(domain, token);
 
     return this.sendMail(email, 'Restore password', html);
+  }
+
+  public async sendTwoFactorEmail(email: string, token: string) {
+    const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
+    const html = getTwoFactorAuthTemplate(domain, token);
+
+    return this.sendMail(email, 'Two factor authentication', html);
   }
 
   private sendMail(email: string, subject: string, html: string) {
